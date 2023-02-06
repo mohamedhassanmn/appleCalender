@@ -32,14 +32,22 @@ const vh = Math.max(
   window.innerHeight || 0
 );
 
-// Api call
-const fetchEventDataApi = () => {
-  return fetch("https://api.github.com/gists/0d0d27c90dc232fda591f4733b303c79")
-    .then((res) => res.json())
-    .then((res) => JSON.parse(res?.files["events.json"]?.content || "[]"));
+// Logics
+const manipulateStaticData = (staticEventData = []) => {
+  const getUnixTimeStamp = (str) => new Date(str).getTime();
+  const filterOutDecAndJan = staticEventData.filter(
+    (event) =>
+      event?.date.split("-")[1] != "01" && event?.date.split("-")[1] != "12"
+  );
+  const sortDailyEvents = filterOutDecAndJan.map((event) => {
+    const sortedEvent = event.events.sort(
+      (a, b) => getUnixTimeStamp(a.time) - getUnixTimeStamp(b.time)
+    );
+    return { ...event, events: sortedEvent };
+  });
+  return sortDailyEvents;
 };
 
-// Logics
 const dateGenerator = (priorDay, month) => {
   const completeMonths = ["Jan", "Mar", "May", "Jul", "Aug", "Oct", "Dec"];
   const oneDayLessMonths = ["Apr", "Jun", "Sep", "Nov"];
@@ -71,6 +79,17 @@ const eventColorGenerator = (text) => {
   } else if (text.includes("Holiday")) {
     return colors[2];
   }
+};
+
+// Api call
+const fetchEventDataApi = () => {
+  return fetch("https://api.github.com/gists/0d0d27c90dc232fda591f4733b303c79")
+    .then((res) => res.json())
+    .then((res) =>
+      manipulateStaticData(
+        JSON.parse(res?.files["events.json"]?.content || "[]")
+      )
+    );
 };
 
 //  Ui settings
