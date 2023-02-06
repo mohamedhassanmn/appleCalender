@@ -20,6 +20,7 @@ const months = [
 const daysIn2020 = 366;
 let currentDate = 0,
   currentMonthInNum = 0;
+const colors = ["#4ba52d", "#2da59a", "#d0970a", "#d0380a"];
 
 // Get dimensions
 const vw = Math.max(
@@ -61,6 +62,16 @@ const dateGenerator = (priorDay, month) => {
 
 const output2DigitNumInStr = (num) =>
   String(num).length < 2 ? "0" + num : String(num);
+
+const eventColorGenerator = (text) => {
+  if (text.includes("Meeting")) {
+    return colors[0];
+  } else if (text.includes("Standup")) {
+    return colors[1];
+  } else if (text.includes("Holiday")) {
+    return colors[2];
+  }
+};
 
 //  Ui settings
 const appendDivToRootWithId = (index, addExtraAttributes = () => {}) => {
@@ -107,19 +118,23 @@ const generateCalenderGridUI = () => {
     });
 };
 
-// const addEventsToUi=(calEvent)={
-//     // const eventDateEle = document.getElementById(calEvent.date)
-//     // appendDivToEleWithId(eventDateEle,calEvent?.events?.name,(currEle)=>{
-//     //     currEle.textContent= calEvent?.events?.name
-//     // })
-// }
+const addEventsToUi = (calEvent) => {
+  const eventDateEle = document.getElementById(calEvent.date);
+  calEvent.events.forEach((event) => {
+    appendDivToEleWithId(eventDateEle, event?.name, (currEle) => {
+      currEle.textContent = event?.name;
+      currEle.setAttribute("class", "events");
+      currEle.style.backgroundColor = eventColorGenerator(event?.name);
+    });
+  });
+};
 
 (() => {
   fetchEventDataApi().then((eventsData) => {
     console.log(eventsData);
     generateCalenderGridUI();
     eventsData.forEach((event) => {
-        // addEventsToUi(event)
+      addEventsToUi(event);
     });
   });
 })();
